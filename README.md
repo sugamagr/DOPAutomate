@@ -1,27 +1,29 @@
-# DOP Agent Portal — RD Installment Automation
+# DOP Agent Portal | RD Installment Automation
 
-Automates recurring deposit (RD) installment payments on the **DOP Agent Portal** (dopagent.indiapost.gov.in / Finacle) using Selenium.
+> Bulk RD installment payment automation for the India Post DOP Agent Portal (Finacle) using Selenium WebDriver.
 
 Takes a CSV of LOTs (batches of RD account numbers), processes payments in bulk, downloads PDF receipts, and merges them into a single file.
 
-## What It Does
+## How It Works
 
-### Phase 1 — Pay Installments
+The script runs in three phases:
+
+### Phase 1: Pay Installments
 For each LOT in the CSV:
 1. Enters RD account numbers into the Deposit Accounts page
 2. Clicks **Fetch** and verifies the result count matches the CSV
-3. Validates every account's due date is in the current month
-4. Selects all checkboxes (pagination-safe for 10+ accounts per page)
+3. Validates every account's due date falls in the current month
+4. Selects all checkboxes (handles pagination for 10+ accounts)
 5. Clicks **Save** → **Pay All Saved Installments**
 6. Captures the payment Reference ID and saves progress to CSV + XLSX
 
-### Phase 2 — Download PDFs
+### Phase 2: Download PDFs
 1. Navigates to Reports → Recurring Deposit Installment Report
 2. Searches by each LOT's Reference ID
 3. Downloads the PDF receipt and renames it to `<LOT>_<RefID>.pdf`
 
-### Phase 3 — Merge PDFs
-Merges all single-page PDF receipts into one file (`Merged_<LOT range>.pdf`). Multi-page PDFs are skipped.
+### Phase 3: Merge PDFs
+Merges all single-page PDF receipts into one combined file (`Merged_<LOT range>.pdf`). Multi-page PDFs are skipped.
 
 ## Requirements
 
@@ -42,9 +44,9 @@ pip install selenium openpyxl psutil pypdf
 | 1   | 020027226090,020027226249,... | 7 |
 | 2   | 020029815976,020029816858,... | 10 |
 
-- **LOT**: Batch number
-- **RD Numbers**: Comma-separated RD account numbers
-- **Count**: Expected number of accounts in this LOT
+- **LOT** : Batch number
+- **RD Numbers** : Comma-separated RD account numbers
+- **Count** : Expected number of accounts in this LOT
 
 ## Usage
 
@@ -62,20 +64,21 @@ pip install selenium openpyxl psutil pypdf
 
 ```
 ~/Downloads/LOT_YYYY-MM-DD/
-  ├── 1_C320461082.pdf      # Individual LOT receipts
+  ├── 1_C320461082.pdf          # Individual LOT receipts
   ├── 2_C320461083.pdf
   ├── ...
-  └── Merged_1-25.pdf        # All single-page PDFs merged
+  └── Merged_1-25.pdf           # All single-page PDFs merged
 ```
 
-The CSV and XLSX files are updated after every LOT with status columns:
-`Fetch_Status`, `Count_Match`, `Due_Date_Check`, `Selected`, `Selection_Verified`, `Save_Status`, `Pay_Status`, `Reference_ID`, `Remarks`
+The CSV and XLSX files are updated after every LOT with the following status columns:
+
+`Fetch_Status` | `Count_Match` | `Due_Date_Check` | `Selected` | `Selection_Verified` | `Save_Status` | `Pay_Status` | `Reference_ID` | `Remarks`
 
 ## Resumability
 
-- LOTs with `Pay_Status=OK` are **skipped** on re-run
-- PDFs already on disk (matching filename) are **skipped**
-- Progress is saved to CSV **after every single LOT**
+- LOTs with `Pay_Status=OK` are skipped on re-run
+- PDFs already on disk (matching filename) are skipped
+- Progress is saved to CSV after every single LOT
 - The merged PDF is skipped if it already exists
 
 ## Safety Features
@@ -85,25 +88,25 @@ The CSV and XLSX files are updated after every LOT with status columns:
 | Zombie Chrome cleanup | Kills leftover automation Chrome processes on startup |
 | Memory watchdog | Monitors RAM usage, saves progress and exits if it exceeds 3.5 GB |
 | Global timeout | Auto-exits after 30 minutes to prevent hangs |
-| Pagination cap | `go_to_page_1()` limited to 10 clicks to prevent runaway loops |
-| Chrome memory flags | `--disable-gpu`, `--disable-dev-shm-usage`, `--disable-extensions` |
-| Gentle pacing | Deliberate delays between actions to avoid spam-like behaviour |
+| Pagination cap | Page navigation limited to 10 clicks to prevent runaway loops |
+| Chrome memory flags | Runs with `--disable-gpu`, `--disable-dev-shm-usage`, `--disable-extensions` |
+| Gentle pacing | Deliberate delays between actions to avoid triggering rate limits |
 
 ## Configuration
 
 Key constants at the top of `dop_automate.py`:
 
 ```python
-CSV_FILE = "/path/to/your/input.csv"
-XLSX_FILE = "/path/to/your/output.xlsx"
-DELAY_SHORT = 1.5       # seconds — after small actions
-DELAY_MEDIUM = 3.0      # seconds — after fetch, page loads
-DELAY_LONG = 5.0        # seconds — between LOTs
-DELAY_CHECKBOX = 0.4    # seconds — between checkbox clicks
+CSV_FILE            = "/path/to/your/input.csv"
+XLSX_FILE           = "/path/to/your/output.xlsx"
+DELAY_SHORT         = 1.5       # seconds, after small actions
+DELAY_MEDIUM        = 3.0       # seconds, after fetch / page loads
+DELAY_LONG          = 5.0       # seconds, between LOTs
+DELAY_CHECKBOX      = 0.4       # seconds, between checkbox clicks
 GLOBAL_TIMEOUT_MINS = 30
-MEMORY_LIMIT_MB = 3500
+MEMORY_LIMIT_MB     = 3500
 ```
 
 ## Platform Support
 
-Works on **macOS**, **Windows**, and **Linux**. Uses `Cmd+A` on Mac and `Ctrl+A` on Windows/Linux automatically.
+Works on **macOS**, **Windows**, and **Linux**. Automatically uses `Cmd+A` on Mac and `Ctrl+A` on Windows/Linux.
