@@ -34,7 +34,7 @@ Merges all single-page PDF receipts into one combined file (`Merged_<LOT range>.
 ### Python Packages
 
 ```bash
-pip install selenium openpyxl psutil pypdf
+pip install selenium openpyxl psutil pypdf flask
 ```
 
 ## Input CSV Format
@@ -58,7 +58,8 @@ pip install selenium openpyxl psutil pypdf
 3. Chrome opens → **log in manually** to the DOP Agent Portal
 4. Navigate to: Accounts → Agent Enquire & Update Screen → Deposit Accounts
 5. Press **ENTER** in the terminal to start automation
-6. After Phase 1 completes, confirm Phase 2 (PDF downloads) when prompted
+6. Open `http://127.0.0.1:5555` in your browser for the live dashboard
+7. After Phase 1 completes, confirm Phase 2 (PDF downloads) when prompted
 
 ## Output
 
@@ -81,6 +82,26 @@ The CSV and XLSX files are updated after every LOT with the following status col
 - Progress is saved to CSV after every single LOT
 - The merged PDF is skipped if it already exists
 
+## Live Dashboard
+
+A web-based dashboard launches automatically at `http://127.0.0.1:5555` when the script starts.
+
+**What you see:**
+- Current phase, LOT, and step in real time
+- Progress bar with completion percentage
+- Per-LOT status table (pending, running, done, failed, skipped)
+- Memory usage and elapsed time
+- Live scrolling log of all automation output
+
+**What you can control:**
+- **Pause / Resume** → freezes automation at the next safe checkpoint
+- **Skip LOT** → jumps to the next LOT immediately
+- **Stop After Current** → finishes the current LOT, saves progress, and exits
+- **Delay sliders** → adjust Short, Medium, Long, and Checkbox delays on the fly
+- **Per-LOT skip toggles** → mark pending LOTs to be skipped before they run
+
+The dashboard auto-reconnects if the connection drops and works in any modern browser.
+
 ## Safety Features
 
 | Feature | Description |
@@ -94,7 +115,7 @@ The CSV and XLSX files are updated after every LOT with the following status col
 
 ## Configuration
 
-Key constants at the top of `dop_automate.py`:
+Key constants at the top of `dop_automate.py` (delays can also be changed live via the dashboard):
 
 ```python
 CSV_FILE            = "/path/to/your/input.csv"
